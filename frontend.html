@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Number Verification</title>
+    <style>
+        #logs {
+            white-space: pre-wrap; /* Preserve formatting for logs */
+            font-family: monospace;
+            background: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Phone Number Verification</h1>
+    <form id="verificationForm">
+        <label for="phoneNumber">Phone Number:</label>
+        <input type="text" id="phoneNumber" name="phoneNumber" required>
+        <button type="submit">Verify</button>
+    </form>
+    <div id="status"></div>
+    <div id="logs"></div>
+
+    <script>
+        document.getElementById('verificationForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            document.getElementById('status').innerText = 'Loading...';
+            document.getElementById('logs').innerText = '';
+
+            try {
+                const response = await fetch('http://localhost:5001/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ phoneNumber })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('logs').innerText = data.logs.join('\n');
+                    window.location.href = data.auth_url; // Redirect to auth server
+                } else {
+                    document.getElementById('status').innerText = 'Error: ' + data.error;
+                    document.getElementById('logs').innerText = data.logs.join('\n');
+                }
+            } catch (error) {
+                document.getElementById('status').innerText = 'Error: Failed to fetch';
+                console.error(error);
+            }
+        });
+
+        // Handle callback from auth server
+        const urlParams = new URLSearchParams(window.location.search);
+        const authCode = urlParams.get('AuthCode');
+        if (authCode) {
+            (async () => {
+                try {
+                    const response = await fetch('http://localhost:5001/callback?AuthCode=' + authCode);
+                    const data = await response.json();
+                    if (response.ok) {
+                        document.getElementById('status').innerText = 'Verification completed: ' + JSON.stringify(data);
+                        document.getElementById('logs').innerText = data.logs.join('\n');
+                    } else {
+                        document.getElementById('status').innerText = 'Error: ' + data.error;
+                        document.getElementById('logs').innerText = data.logs.join('\n');
+                    }
+                } catch (error) {
+                    document.getElementById('status').innerText = 'Error: Failed to fetch';
+                    console.error(error);
+                }
+            })();
+        }
+    </script>
+</body>
+</html>
