@@ -31,7 +31,7 @@ def verify():
     # Forward the token to APIGateway
     headers = {'Authorization': access_token}
     print(f"Sending request to APIGateway with token: {access_token}")
-    response = requests.post(f"{APIGATEWAY_URL}/camara/number-verification/v0/verify", headers=headers)
+    response = requests.get(f"{APIGATEWAY_URL}/camara/number-verification/v0/verify", headers=headers)
 
     if response.status_code != 200:
         print(f"APIGateway verification failed: {response.status_code} - {response.text}")

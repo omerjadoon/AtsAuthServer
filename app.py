@@ -2,8 +2,12 @@ from flask import Flask, request, redirect, jsonify
 import random
 import string
 import requests
+import time
+import math
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 # In-memory database simulation
 db = {}
@@ -19,10 +23,13 @@ def generate_token():
 @app.route('/auth/v1/authorize', methods=['GET'])
 def authorize():
     redirect_uri = request.args.get('redirect_uri')
-    phone_number = "+14251000000"  # Test phone number
+    print("Generating AuthCode")
+    phone_number = "14251000000"  # Test phone number ( FIXED ) (Assuming this Number After NBA)
+    print(f"Assuming After Network_Based_Authentication Phone_Number is : {phone_number}")
     auth_code = generate_auth_code()
     db[auth_code] = {'phone_number': phone_number, 'token': None}
-    redirect_url = f"{redirect_uri}?AuthCode={auth_code}"
+    redirect_url = f"{redirect_uri}&AuthCode={auth_code}"
+    print(f"Sending Back Redirect URL: {redirect_url}")
     return redirect(redirect_url, code=302)
 
 @app.route('/auth/v1/token', methods=['POST'])
@@ -42,11 +49,15 @@ def token():
             print(f"Failed to store token in APIGateway: {response.status_code} - {response.text}")
             return jsonify({'error': 'Failed to store token in APIGateway'}), 500
 
+        # Time stamp for token expiration after 1 hour
+        ts = time.time()
+        token_expiration = ts + 3600
+        token_expiration = math.floor(token_expiration)
         print(f"Token stored in APIGateway: {token}")
         return jsonify({
             'accessToken': token,
             'tokenType': 'Bearer',
-            'expireIn': 1737530975  # Token expires in 1 hour (mock value)
+            'expireIn': token_expiration
         }), 200
     else:
         return jsonify({'error': 'Invalid AuthCode'}), 400

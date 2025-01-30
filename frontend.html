@@ -44,7 +44,26 @@
                 const data = await response.json();
                 if (response.ok) {
                     document.getElementById('logs').innerText = data.logs.join('\n');
-                    window.location.href = data.auth_url; // Redirect to auth server
+                    auth_url = data.auth_url; // Redirect to auth server
+
+                    if (auth_url) {
+                        try{
+                            const response = await fetch(auth_url);
+                            const data = await response.json();
+                            if (response.ok) {
+                                document.getElementById('status').innerText = 'Verification completed';
+                                document.getElementById('logs').innerText = data.logs.join('\n');
+                            } else {
+                                document.getElementById('status').innerText = 'Error: ' + data.error;
+                                document.getElementById('logs').innerText = data.logs.join('\n');
+                            }
+                        } catch (error) {
+                            document.getElementById('status').innerText = 'Error: Failed to fetch';
+                            console.error(error);
+                            }
+                        }
+
+
                 } else {
                     document.getElementById('status').innerText = 'Error: ' + data.error;
                     document.getElementById('logs').innerText = data.logs.join('\n');
@@ -55,12 +74,15 @@
             }
         });
 
+
+
         // Handle callback from auth server
         const urlParams = new URLSearchParams(window.location.search);
         const authCode = urlParams.get('AuthCode');
         if (authCode) {
             (async () => {
-                try {
+                <!-- Call Back From the URL From the backend -->
+                try { 
                     const response = await fetch('http://localhost:5001/callback?AuthCode=' + authCode);
                     const data = await response.json();
                     if (response.ok) {

@@ -31,14 +31,17 @@ def verify():
     log_step("Step 1", f"Received phone number: {phone_number}")
 
     # Step 2: Redirect to auth server for authorization
-    auth_url = f"{AUTH_SERVER_URL}/auth/v1/authorize?redirect_uri={BACKEND_REDIRECT_URL}"
-    log_step("Step 2", f"Redirecting to auth server: {auth_url}")
+    BACKEND_REDIRECT_URL_state = BACKEND_REDIRECT_URL + f"?state={phone_number}"
+    auth_url = f"{AUTH_SERVER_URL}/auth/v1/authorize?redirect_uri={BACKEND_REDIRECT_URL_state}"
+    log_step("Step 2", f"Sending Request to auth server to get AuthCode: {auth_url}")
     return jsonify({'auth_url': auth_url, 'logs': logs}), 200
 
 @app.route('/callback', methods=['GET'])
 def callback():
     auth_code = request.args.get('AuthCode')
-    log_step("Step 3", f"Received AuthCode from auth server: {auth_code}")
+    phone_number = request.args.get('state')
+    
+    log_step("Step 3", f"Received AuthCode from auth server: {auth_code} and phone number From the State: {phone_number}")
 
     # Step 4: Exchange AuthCode for Token
     token_url = f"{AUTH_SERVER_URL}/auth/v1/token"
@@ -47,12 +50,12 @@ def callback():
 
     if response.status_code == 200:
         token_data = response.json()
-        log_step("Step 5", f"Token generated: {token_data}")
+        log_step("Step 5", f"Access Token Recieved: {token_data}")
 
         # Step 6: Verify token with ShushServer
         shush_url = f"{SHUSHSERVER_URL}/shush/number-verification/v0/verify"
         headers = {'Authorization': f"Bearer {token_data['accessToken']}"}
-        body = {'phoneNumber': "+14251000000"}  # Replace with the actual phone number
+        body = {'phoneNumber': phone_number}
         shush_response = requests.post(shush_url, headers=headers, json=body)
 
         if shush_response.status_code == 200:
