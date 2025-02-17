@@ -33,7 +33,7 @@ def verify():
     # Step 2: Redirect to auth server for authorization
     BACKEND_REDIRECT_URL_state = BACKEND_REDIRECT_URL + f"?state={phone_number}"
     auth_url = f"{AUTH_SERVER_URL}/auth/v1/authorize?redirect_uri={BACKEND_REDIRECT_URL_state}"
-    log_step("Step 2", f"Sending Request to auth server to get AuthCode: {auth_url}")
+    log_step("Step 2", f"Sending back auth-server link to the Client: {auth_url}")
     return jsonify({'auth_url': auth_url, 'logs': logs}), 200
 
 @app.route('/callback', methods=['GET'])

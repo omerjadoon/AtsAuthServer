@@ -42,9 +42,9 @@ def verify():
 
     # Compare phone numbers
     if device_phone_number == phone_number:
-        return jsonify({'devicePhoneNumberVerified': 'yes'}), 200
+        return jsonify({'devicePhoneNumberVerified': True}), 200
     else:
-        return jsonify({'devicePhoneNumberVerified': 'no'}), 200
+        return jsonify({'devicePhoneNumberVerified': False}), 200
 
 if __name__ == '__main__':
     app.run(port=5003)
