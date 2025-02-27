@@ -58,7 +58,7 @@
                                 document.getElementById('logs').innerText = data.logs.join('\n');
                             }
                         } catch (error) {
-                            document.getElementById('status').innerText = 'Error: Failed to fetch';
+                            document.getElementById('status').innerText = 'Error: ' + data.error;
                             console.error(error);
                             }
                         }
